@@ -20,6 +20,6 @@ setup(name='TypedNamedTuple',
       url='https://github.com/jd-boyd/typednamedtuple',
       packages=find_packages(),
       package_data={'': ['README.md', 'LICENSE.txt']},
-      install_requires=[''],
+      install_requires=['six'],
       tests_require=['nose'],
      )
