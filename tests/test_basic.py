@@ -1,5 +1,7 @@
 from __future__ import absolute_import, print_function, unicode_literals
 
+from contextlib import contextmanager
+
 from nose.tools import assert_raises, eq_
 
 from typednamedtuple import TypedNamedTuple
@@ -80,6 +82,72 @@ def test_class_type_err():
 
     with assert_raises(TypeError):
         c = C({}, "5", cta, ctb)
+
+
+def test_class_keyword_arg():
+    class Pt(TypedNamedTuple):
+        x = int
+        y = int
+
+    p = Pt(y=6, x=10)
+    eq_(p, (10, 6))
+
+
+def test_class_mixed_arg():
+    class Pt(TypedNamedTuple):
+        x = int
+        y = int
+
+    p = Pt(6, y=10)
+    eq_(p, (6, 10))
+
+
+@contextmanager
+def assert_exception(cls, eval_exc=None, args=None):
+    fired = False
+    caught_exc = None
+    try:
+        yield
+    except cls as exc:
+        fired = True
+        caught_exc = exc
+
+    if caught_exc and eval_exc is not None:
+        assert eval_exc(caught_exc)
+    if caught_exc and args is not None:
+        assert caught_exc.args == args, args
+    if not fired:
+        assert False, "Exception (%s) failed to fire." % cls.__name__
+
+
+def test_class_missing_position():
+    class Pt(TypedNamedTuple):
+        x = int
+        y = int
+
+    with assert_exception(TypeError,
+                          args=("Pt missing 1 required positional argument: 'y'",)):
+        p = Pt(6)
+
+def test_class_missing_mixed():
+    class Pt(TypedNamedTuple):
+        x = int
+        y = int
+
+    exc_arg = ("Pt missing 1 required positional argument: 'x'",)
+    with assert_exception(TypeError,
+                          eval_exc=lambda exc: exc.args == exc_arg):
+        p = Pt(y=6)
+
+
+def test_class_missing_kw():
+    class Pt(TypedNamedTuple):
+        x = int
+        y = int
+
+    with assert_exception(TypeError,
+                          args=("Pt missing 1 required positional argument: 'y'",)):
+        p = Pt(x=6)
 
 
 if __name__=="__main__":
