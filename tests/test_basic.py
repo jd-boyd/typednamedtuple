@@ -4,7 +4,8 @@ from contextlib import contextmanager
 
 from nose.tools import assert_raises, eq_
 
-from typednamedtuple import TypedNamedTuple
+from typednamedtuple import (TypedNamedTuple, TProp, IntProp, StrProp,
+                             FloatProp)
 
 
 class MixIn(object):
@@ -26,10 +27,10 @@ class CTb(object):
 
 
 class C(TypedNamedTuple, MixIn):
-    a = int
-    b = str
-    c = CTa
-    d = CTb
+    a = TProp(int)
+    b = TProp(str)
+    c = TProp(CTa)
+    d = TProp(CTb)
 
 
 def test_class_mixin():
@@ -86,8 +87,8 @@ def test_class_type_err():
 
 def test_class_keyword_arg():
     class Pt(TypedNamedTuple):
-        x = int
-        y = int
+        x = TProp(int)
+        y = TProp(int)
 
     p = Pt(y=6, x=10)
     eq_(p, (10, 6))
@@ -95,11 +96,26 @@ def test_class_keyword_arg():
 
 def test_class_mixed_arg():
     class Pt(TypedNamedTuple):
-        x = int
-        y = int
+        x = TProp(int)
+        y = TProp(int)
 
     p = Pt(6, y=10)
     eq_(p, (6, 10))
+
+
+def test_class_check_kw_pos_eq():
+    # Check that instances made with keyword args and with 
+    # positional args are the same
+    class Pt(TypedNamedTuple):
+        y = TProp(int)
+        x = TProp(int)
+
+    p = Pt(10, 6)
+
+    p2 = Pt(y=10, x=6)
+    eq_(p, p2)
+    eq_(str(p), str(p2))
+    eq_(repr(p), repr(p2))
 
 
 @contextmanager
@@ -122,8 +138,8 @@ def assert_exception(cls, eval_exc=None, args=None):
 
 def test_class_missing_position():
     class Pt(TypedNamedTuple):
-        x = int
-        y = int
+        x = TProp(int)
+        y = TProp(int)
 
     with assert_exception(TypeError,
                           args=("Pt missing 1 required positional argument: 'y'",)):
@@ -131,8 +147,8 @@ def test_class_missing_position():
 
 def test_class_missing_mixed():
     class Pt(TypedNamedTuple):
-        x = int
-        y = int
+        x = TProp(int)
+        y = TProp(int)
 
     exc_arg = ("Pt missing 1 required positional argument: 'x'",)
     with assert_exception(TypeError,
@@ -142,12 +158,40 @@ def test_class_missing_mixed():
 
 def test_class_missing_kw():
     class Pt(TypedNamedTuple):
-        x = int
-        y = int
+        x = TProp(int)
+        y = TProp(int)
 
     with assert_exception(TypeError,
                           args=("Pt missing 1 required positional argument: 'y'",)):
         p = Pt(x=6)
+
+
+def test_partials():
+    class Pt(TypedNamedTuple):
+        x = IntProp()
+        y = FloatProp()
+        z = StrProp()
+
+    p = Pt(1, 2.0, "3.0")
+    eq_(p, (1, 2.0, "3.0"))
+
+
+def test_strict_int():
+    class StrictInt(int):
+        def __init__(self, i):
+            assert type(i) is int
+            super(StrictInt, self).__init__()
+            self = i
+
+
+    class Pt(TypedNamedTuple):
+        x = TProp(StrictInt)
+
+    p = Pt(1)
+    eq_(p, (1,))
+
+    with assert_raises(AssertionError):
+        p = Pt("1")
 
 
 if __name__=="__main__":
