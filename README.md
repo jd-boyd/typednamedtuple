@@ -16,16 +16,16 @@ created a typed named tuple should look familiar.
 
 ```python
 class Employee(TypedNamedTuple):
-	name = TProp(str)
-	wage = TProp(int)
-	startdate = datetime.date
+    name = TProp(str)
+    wage = TProp(int)
+    startdate = datetime.date
 
-	def time_with_employer(self):
-		"""Will return datetime.timedelta"""
-		return datetime.datetime.now().date() - self.startdate
+    def time_with_employer(self):
+        """Will return datetime.timedelta"""
+        return datetime.datetime.now().date() - self.startdate
 
 
-employee = Employee("Bob", 18, datetime.date(2011, 2, 3)
+employee = Employee("Bob", 18, datetime.date(2011, 2, 3))
 employee.time_with_employer()
 ```
 
